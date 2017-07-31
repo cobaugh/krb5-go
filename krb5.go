@@ -16,6 +16,8 @@
 package krb5
 
 // #cgo LDFLAGS: -lkrb5 -lk5crypto -lcom_err
+// #cgo freebsd LDFLAGS: -L/usr/local/lib
+// #cgo freebsd CFLAGS: -I/usr/local/include
 // #include <krb5.h>
 // #include <limits.h>
 // #include <string.h>
