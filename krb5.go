@@ -793,6 +793,26 @@ func (ctx *Context) GetInitialCredentialWithKeyTab(
 	return credentialFromC(&creds), nil
 }
 
+func (ctx *Context) GetInitialCredentialWithPassword(
+	pw string, client *Principal, service *Principal) (*Credential, error) {
+	creds := C.krb5_creds{}
+	clientC := client.toC()
+	defer freeKrb5PrincipalData(&clientC)
+	pwC := C.CString(pw)
+	defer C.free(unsafe.Pointer(pwC))
+	var serviceNameC *C.char
+	if service != nil {
+		serviceNameC = C.CString(service.String())
+		defer C.free(unsafe.Pointer(serviceNameC))
+	}
+	if code := C.krb5_get_init_creds_password(ctx.ctx, &creds,
+		&clientC, pwC, nil, nil, 0, serviceNameC, nil); code != 0 {
+		return nil, ctx.makeError(code)
+	}
+	defer C.krb5_free_cred_contents(ctx.ctx, &creds)
+	return credentialFromC(&creds), nil
+}
+
 // TODO(davidben): Expose more of these options.
 func (ctx *Context) GetCredential(
 	cc *CCache, client *Principal, service *Principal) (*Credential, error) {
